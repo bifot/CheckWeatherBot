@@ -5,9 +5,9 @@
 Выводит температуру, мин. температуру, макс. температуру, скорость ветра.
 
 ```
-git clone https://github.com/bifot/CheckWeatherBot
-cd CheckWeatherBot
-npm install
+$ git clone https://github.com/bifot/CheckWeatherBot
+$ cd CheckWeatherBot
+$ npm install
 ```
 
 * OpenWeatherMap API Token — http://openweathermap.org/api
