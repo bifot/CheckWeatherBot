@@ -1,0 +1,28 @@
+{
+  "name": "checkweatherbot",
+  "version": "1.0.0",
+  "description": "Посмотри погоду в своем городе, дабы одеться по сезону!",
+  "main": "app.js",
+  "dependencies": {
+    "node-telegram-bot-api": "^0.25.0",
+    "petrovich": "^0.2.1",
+    "sync-request": "^3.0.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bifot/CheckWeatherBot.git"
+  },
+  "keywords": [
+    "weather"
+  ],
+  "author": "Mikhail Semin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bifot/CheckWeatherBot/issues"
+  },
+  "homepage": "https://github.com/bifot/CheckWeatherBot#readme"
+}
