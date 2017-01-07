@@ -10,76 +10,79 @@ var bot = new TelegramBot(token, { polling: true });
 
 console.log("Бот запущен...\n");
 
-// Слово с большой буквы
-
 var toUpperChar = (word) => {
   var wordUpperChar = word.substr(0, 1).toUpperCase() + word.substr(1);
 
   return wordUpperChar;
 }
 
-// Парсим погоду
-
 var getWeather = (city, cityHuman) => {
+  // Парсим погоду
+
   var url = "http://api.openweathermap.org/data/2.5/weather?q=" + city + "&units=metric&appid=" + tokenWeather;
 
   // Для отладки выводим ссылку на запрос
   // console.log(url);
 
   var res = req("GET", url);
-  var body = JSON.parse(res.getBody());
 
-  var results = {
-    "temp": body.main.temp,
-    "tempMin": body.main.temp_min,
-    "tempMax": body.main.temp_max, 
-    "windSpeed": body.wind.speed,
-    "weatherMain": body.weather[0].main,
-    "country": body.sys.country
-  };
+  if (res.statusCode == 200) {
+    var body = JSON.parse(res.getBody());
+    
+    var results = {
+      "temp": body.main.temp,
+      "tempMin": body.main.temp_min,
+      "tempMax": body.main.temp_max, 
+      "windSpeed": body.wind.speed,
+      "weatherMain": body.weather[0].main,
+      "country": body.sys.country
+    };
 
-  // Склоняем город в предложный падеж, возвращаем с большой буквы
+    // Склоняем город в предложный падеж, возвращаем с большой буквы
 
-  var cityDeclension = {
-    gender: "male",
-    first: cityHuman
-  };
+    var cityDeclension = {
+      gender: "male",
+      first: cityHuman
+    };
 
-  var cityHuman = toUpperChar(petrovich(cityDeclension, "prepositional").first);
+    var cityHuman = toUpperChar(petrovich(cityDeclension, "prepositional").first);
 
-  // Добавляем эмодзи в зависимости от описания погоды
+    // Добавляем эмодзи в зависимости от описания погоды
 
-  if (results.weatherMain == "Clear") {
-    results.weatherMainEmoji = "🌌";
-    results.weatherMainRu = "Чистое небо";
-  } else if (results.weatherMain == "Rain") {
-    results.weatherMainEmoji = "☔";
-    results.weatherMainRu = "Дождь";
-  } else if (results.weatherMain == "Mist" || results.weatherMain == "Haze" || results.weatherMain == "Fog") {
-    results.weatherMainEmoji = "🌫";
-    results.weatherMainRu = "Туман";
-  } else if (results.weatherMain == "Snow") {
-    results.weatherMainEmoji = "❄";
-    results.weatherMainRu = "Снег";
-  } else if (results.weatherMain == "Clouds") {
-    results.weatherMainEmoji = "☁";
-    results.weatherMainRu = "Облачно";
-  } else {
-    console.log(`Неизвестное описание погоды ${results.weatherMain}`);
+    if (results.weatherMain == "Clear") {
+      results.weatherMainEmoji = "🌌";
+      results.weatherMainRu = "Чистое небо";
+    } else if (results.weatherMain == "Rain") {
+      results.weatherMainEmoji = "☔";
+      results.weatherMainRu = "Дождь";
+    } else if (results.weatherMain == "Mist" || results.weatherMain == "Haze" || results.weatherMain == "Fog") {
+      results.weatherMainEmoji = "🌫";
+      results.weatherMainRu = "Туман";
+    } else if (results.weatherMain == "Snow") {
+      results.weatherMainEmoji = "❄";
+      results.weatherMainRu = "Снег";
+    } else if (results.weatherMain == "Clouds") {
+      results.weatherMainEmoji = "☁";
+      results.weatherMainRu = "Облачно";
+    } else {
+      console.log(`Неизвестное описание погоды ${results.weatherMain}`);
+    }
+
+    // Возвращаем сообщение
+
+    var msg = "*Погода в " + cityHuman + " (" + results.country + ") на сегодняшний день.*\n\n"
+              + results.weatherMainEmoji + " Температура: *" + results.temp+ " °C (" + results.weatherMainRu + ")*\n"
+              + results.weatherMainEmoji + " Мин. температура: *" + results.tempMin + " °C*\n"
+              + results.weatherMainEmoji + " Макс. температура: *" + results.tempMax + " °C*\n\n"
+              + "🌪 Ветер: *" + results.windSpeed + " м/с*";
+
+    return msg;
   }
 
-  // Возвращаем сообщение
-
-  var msg = "*Погода в " + cityHuman + " (" + results.country + ") на сегодняшний день.*\n\n"
-            + results.weatherMainEmoji + " Температура: *" + results.temp+ " °C (" + results.weatherMainRu + ")*\n"
-            + results.weatherMainEmoji + " Мин. температура: *" + results.tempMin + " °C*\n"
-            + results.weatherMainEmoji + " Макс. температура: *" + results.tempMax + " °C*\n\n"
-            + "🌪 Ветер: *" + results.windSpeed + " м/с*";
-
-  return msg;
+  return "Город не найден.";
 };
 
-// Переводчик
+// Функция перевода
 
 var translate = (text) => {
   var url = "https://translate.yandex.net/api/v1.5/tr.json/translate?key=" + tokenTranslate
