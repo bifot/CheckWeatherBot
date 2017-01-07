@@ -13,6 +13,6 @@ npm install
 * OpenWeatherMap API Token Ч http://openweathermap.org/api
 * яндекс ѕереводчик API Token Ч https://tech.yandex.ru/keys/get/
 
-_________
-  
+________
+
 *—делано с любовью, автор: [ћихаил —емин](http://bifot.ru).*
