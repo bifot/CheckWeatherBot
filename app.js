@@ -64,7 +64,12 @@ var getWeather = (city, cityHuman) => {
     } else if (results.weatherMain == "Clouds") {
       results.weatherMainEmoji = "☁";
       results.weatherMainRu = "Облачно";
+    } else if (results.weatherMain == "Drizzle") {
+      results.weatherMainEmoji = "🌧";
+      results.weatherMainRu = "Небольшой дождь";
     } else {
+      results.weatherMainEmoji = "?";
+      results.weatherMainRu = results.weatherMain;
       console.log(`Неизвестное описание погоды ${results.weatherMain}`);
     }
 
