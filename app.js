@@ -14,7 +14,7 @@ var toUpperChar = (word) => {
   var wordUpperChar = word.substr(0, 1).toUpperCase() + word.substr(1);
 
   return wordUpperChar;
-}
+};
 
 var getWeather = (city, cityHuman) => {
   // Парсим погоду
@@ -115,7 +115,7 @@ var translate = (text) => {
   // console.log(text + " => " + body.text[0]);
 
   return body.text[0];
-}
+};
 
 bot.on("message", (msg) => {
   // Мониторинг сообщений
