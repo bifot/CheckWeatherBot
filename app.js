@@ -121,32 +121,37 @@ bot.on("message", (msg) => {
   // Мониторинг сообщений
   console.log(`Пользователь ${msg.from.first_name} ${msg.from.last_name} (@${msg.from.username}) написал «${msg.text}»`);
 
-  if (msg.text == "/start") {
-    var settings = {
-      parse_mode: "markdown"
-    };
+  switch (msg.text) {
+    case "/start":
+      var settings = {
+        parse_mode: "markdown"
+      };
 
-    var username = msg.from.first_name + " " + msg.from.last_name;
+      var username = msg.from.first_name + " " + msg.from.last_name;
 
-    bot.sendMessage(msg.from.id, "*Здравствуйте, " + username + "!*\n\n" + "Это бот для просмотра погоды. "
-      + "Чтобы узнать погоду в каком-либо городе, достаточно написать его название в именительном падеже.\n\n"
-      + "Дополнительная команды: /help\n\n"
-      + "*Внимание: все следующие сообщения будут приняты за название города.*", settings);
-  } else if (msg.text == "/help") {
-    var settings = {
-      parse_mode: "markdown"
-    };
+      bot.sendMessage(msg.from.id, "*Здравствуйте, " + username + "!*\n\n" + "Это бот для просмотра погоды. "
+        + "Чтобы узнать погоду в каком-либо городе, достаточно написать его название в именительном падеже.\n\n"
+        + "Дополнительная команды: /help\n\n"
+        + "*Внимание: все следующие сообщения будут приняты за название города.*", settings);
+      break;
 
-    bot.sendMessage(msg.from.id, "Бот предоставляется «так как есть».\n\n"
-      + "Написать разработчику по любым вопросам можно в личные сообщения (*@bifot*).", settings);
-  } else {
-    var settings = {
-      parse_mode: "markdown"
-    };
+    case "/help":
+      var settings = {
+        parse_mode: "markdown"
+      };
 
-    var city = translate(msg.text);
-    var message = getWeather(city, msg.text);
+      bot.sendMessage(msg.from.id, "Бот предоставляется «так как есть».\n\n"
+        + "Написать разработчику по любым вопросам можно в личные сообщения (*@bifot*).", settings);
+      break;
 
-    bot.sendMessage(msg.from.id, message, settings);
+    default:
+      var settings = {
+        parse_mode: "markdown"
+      };
+
+      var city = translate(msg.text);
+      var message = getWeather(city, msg.text);
+
+      bot.sendMessage(msg.from.id, message, settings);
   }
 });
