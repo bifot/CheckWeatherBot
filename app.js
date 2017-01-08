@@ -49,28 +49,44 @@ var getWeather = (city, cityHuman) => {
 
     // Добавляем эмодзи в зависимости от описания погоды
 
-    if (results.weatherMain == "Clear") {
-      results.weatherMainEmoji = "🌌";
-      results.weatherMainRu = "Чистое небо";
-    } else if (results.weatherMain == "Rain") {
-      results.weatherMainEmoji = "☔";
-      results.weatherMainRu = "Дождь";
-    } else if (results.weatherMain == "Mist" || results.weatherMain == "Haze" || results.weatherMain == "Fog") {
-      results.weatherMainEmoji = "🌫";
-      results.weatherMainRu = "Туман";
-    } else if (results.weatherMain == "Snow") {
-      results.weatherMainEmoji = "❄";
-      results.weatherMainRu = "Снег";
-    } else if (results.weatherMain == "Clouds") {
-      results.weatherMainEmoji = "☁";
-      results.weatherMainRu = "Облачно";
-    } else if (results.weatherMain == "Drizzle") {
-      results.weatherMainEmoji = "🌧";
-      results.weatherMainRu = "Небольшой дождь";
-    } else {
-      results.weatherMainEmoji = "?";
-      results.weatherMainRu = results.weatherMain;
-      console.log(`Неизвестное описание погоды ${results.weatherMain}`);
+    switch (results.weatherMain) {
+      case "Clear":
+        results.weatherMainEmoji = "🌌";
+        results.weatherMainRu = "Чистое небо";
+        break;
+
+      case "Rain":
+        results.weatherMainEmoji = "☔";
+        results.weatherMainRu = "Дождь";
+        break;
+
+      case "Mist":
+      case "Haze":
+      case "Fog":
+        results.weatherMainEmoji = "🌫";
+        results.weatherMainRu = "Туман";
+        break;
+
+      case "Snow":
+        results.weatherMainEmoji = "❄";
+        results.weatherMainRu = "Снег";
+        break;
+
+      case "Clouds":
+        results.weatherMainEmoji = "☁";
+        results.weatherMainRu = "Облачно";
+        break;
+
+      case "Drizzle":
+        results.weatherMainEmoji = "🌧";
+        results.weatherMainRu = "Небольшой дождь";
+        break;
+
+      default:
+        results.weatherMainEmoji = "?";
+        results.weatherMainRu = results.weatherMain;
+
+        console.log(`Неизвестное описание погоды ${results.weatherMain}`);
     }
 
     // Возвращаем сообщение
