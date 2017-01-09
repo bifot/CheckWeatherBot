@@ -238,7 +238,7 @@ bot.on("message", msg => {
           var users = db.collection("users");
 
           users.find().toArray((err, results) => {
-            for (userId in results) {
+            for (var userId in results) {
               if (results[userId][msg.from.id]) {
                 resolve(results[userId][msg.from.id]);
                 return;
