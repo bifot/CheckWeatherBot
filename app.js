@@ -8,7 +8,7 @@ var TelegramBot = require("node-telegram-bot-api");
 var req = require("sync-request");
 var petrovich = require("petrovich");
 var MongoClient = require('mongodb').MongoClient;
-var assert = require('assert');
+var assert = require("assert");
 
 var bot = new TelegramBot(token, { polling: true });
 
