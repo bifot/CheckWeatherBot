@@ -1,3 +1,5 @@
+var urlDb = "mongodb://localhost:27017/weather";
+
 var token = "TOKEN_TELEGRAM_BOT"; // @BotFather
 var tokenWeather = "TOKEN_WEATHER_API"; // http://openweathermap.org/api
 var tokenTranslate = "TOKEN_TRANSLATE_YANDEX_API"; // https://tech.yandex.ru/keys/get/
@@ -5,23 +7,58 @@ var tokenTranslate = "TOKEN_TRANSLATE_YANDEX_API"; // https://tech.yandex.ru/key
 var TelegramBot = require("node-telegram-bot-api");
 var req = require("sync-request");
 var petrovich = require("petrovich");
+var MongoClient = require('mongodb').MongoClient;
+var assert = require('assert');
 
 var bot = new TelegramBot(token, { polling: true });
 
 console.log("Бот запущен...\n");
 
-var toUpperChar = (word) => {
+// Слово с большой буквы
+
+var toUpperChar = word => {
   var wordUpperChar = word.substr(0, 1).toUpperCase() + word.substr(1);
 
   return wordUpperChar;
 };
 
-var getWeather = (city, cityHuman) => {
-  // Парсим погоду
+// Переводчик
 
+var translate = (text, lang) => {
+  var url = "https://translate.yandex.net/api/v1.5/tr.json/translate?key=" + tokenTranslate
+            + "&text=" + encodeURIComponent(text) + "&lang=" + lang + "&format=plain";
+
+  // Ссылка на запрос
+  // console.log(url);
+
+  var res = req("GET", url);
+  var body = JSON.parse(res.getBody());
+  
+  // Выводим перевод
+  // console.log(text + " => " + body.text[0]);
+
+  return body.text[0];
+};
+
+// Склоняем слово в нужный падеж
+
+var declension = (word, falling) => {
+  var cityDeclension = {
+    gender: "male",
+    first: word
+  };
+
+  var cityHuman = toUpperChar(petrovich(cityDeclension, falling).first);
+
+  return cityHuman;
+};
+
+// Парсим погоду
+
+var getWeather = city => {
   var url = "http://api.openweathermap.org/data/2.5/weather?q=" + city + "&units=metric&appid=" + tokenWeather;
 
-  // Для отладки выводим ссылку на запрос
+  // Ссылка на запрос
   // console.log(url);
 
   var res = req("GET", url);
@@ -35,17 +72,14 @@ var getWeather = (city, cityHuman) => {
       "tempMax": body.main.temp_max, 
       "windSpeed": body.wind.speed,
       "weatherMain": body.weather[0].main,
-      "country": body.sys.country
+      "country": body.sys.country,
+      "city": body.name
     };
 
     // Склоняем город в предложный падеж, возвращаем с большой буквы
 
-    var cityDeclension = {
-      gender: "male",
-      first: cityHuman
-    };
-
-    var cityHuman = toUpperChar(petrovich(cityDeclension, "prepositional").first);
+    var city = toUpperChar(results.city);
+    var cityHuman = declension(translate(city, "en-ru"), "prepositional");
 
     // Добавляем эмодзи в зависимости от описания погоды
 
@@ -103,20 +137,6 @@ var getWeather = (city, cityHuman) => {
   return "Город не найден.";
 };
 
-// Функция перевода
-
-var translate = (text) => {
-  var url = "https://translate.yandex.net/api/v1.5/tr.json/translate?key=" + tokenTranslate
-            + "&text=" + encodeURIComponent(text) + "&lang=ru-en&format=plain";
-  var res = req("GET", url);
-  var body = JSON.parse(res.getBody());
-
-  // Для отладки выводим перевод в консоль
-  // console.log(text + " => " + body.text[0]);
-
-  return body.text[0];
-};
-
 bot.on("message", (msg) => {
   // Мониторинг сообщений
   console.log(`Пользователь ${msg.from.first_name} ${msg.from.last_name} (@${msg.from.username}) написал «${msg.text}»`);
@@ -131,7 +151,7 @@ bot.on("message", (msg) => {
 
       bot.sendMessage(msg.from.id, "*Здравствуйте, " + username + "!*\n\n" + "Это бот для просмотра погоды. "
         + "Чтобы узнать погоду в каком-либо городе, достаточно написать его название в именительном падеже.\n\n"
-        + "Дополнительная команды: /help\n\n"
+        + "Дополнительная команды: /help /remember\n\n"
         + "*Внимание: все следующие сообщения будут приняты за название города.*", settings);
       break;
 
@@ -144,13 +164,97 @@ bot.on("message", (msg) => {
         + "Написать разработчику по любым вопросам можно в личные сообщения (*@bifot*).", settings);
       break;
 
+    case "/remember":
+      var settings = {
+        parse_mode: "markdown",
+        reply_markup: JSON.stringify({
+          force_reply: true
+        })
+      };
+
+      bot.sendMessage(msg.from.id, "Вы можете записать свой город, чтобы не набирать его каждый раз.\n\n"
+        + "Узнать погоду в вашем городе в дальнейшем можно по команде *Погода*.", settings)
+        .then(send => {
+          bot.onReplyToMessage(send.chat.id, send.message_id, message => {
+            var settings = {
+              parse_mode: "markdown"
+            };
+
+            var city = {};
+            city[msg.from.id] = message.text;
+
+            MongoClient.connect(urlDb, (err, db) => {
+              assert.equal(null, err);
+              console.log("Подключились к таблице из /remember.");
+
+              var users = db.collection("users");
+           
+              users.insert(city, (err, docs) => {                
+                users.count((err, count) => {
+                  console.log(`Записей в таблице: ${count}`);
+                });
+
+                users.find().toArray((err, results) => {
+                  // console.log(results);
+
+                  db.close();
+                });
+              });
+            });
+
+            bot.sendMessage(msg.from.id, "Бот успешно записал, что вы живете в " + declension(message.text, "prepositional") + ".\n\n"
+              + "Теперь вы можете посмотреть погоду в своем городе с помощью команды *Погода*.\n\n"
+              + "Перезаписать город можно с помощью команды */remember*.", settings);
+          });
+        });
+
+      break;
+
+    case "Погода":
+      var getCity = new Promise((resolve, reject) => {
+        MongoClient.connect(urlDb, (err, db) => {
+          assert.equal(null, err);
+          console.log("Подключились к таблице из команды Погода.");
+
+          var users = db.collection("users");
+
+          users.find().toArray((err, results) => {
+            var length = results.length - 1;
+
+            var city = (() => {
+              for (var i = 0; i < results.length; i++) {
+                if (results[i][msg.from.id].length) {
+                  resolve(results[length][msg.from.id]);
+
+                  return;
+                }
+              }
+            })();
+
+            db.close();
+          });
+        });
+      });
+
+      getCity
+        .then(result => {
+          var settings = {
+            parse_mode: "markdown"
+          };
+
+          var message = getWeather(translate(result, "ru-en"), result);
+
+          bot.sendMessage(msg.from.id, message, settings);
+        })
+
+      break;
+
     default:
       var settings = {
         parse_mode: "markdown"
       };
 
-      var city = translate(msg.text);
-      var message = getWeather(city, msg.text);
+      var message = getWeather(translate(msg.text, "ru-en"), msg.text);
 
       bot.sendMessage(msg.from.id, message, settings);
   }
