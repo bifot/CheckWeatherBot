@@ -151,7 +151,7 @@ bot.on("message", msg => {
 
       bot.sendMessage(msg.from.id, "*Здравствуйте, " + username + "!*\n\n" + "Это бот для просмотра погоды. "
         + "Чтобы узнать погоду в каком-либо городе, достаточно написать его название в именительном падеже.\n\n"
-        + "Дополнительная команды: /help /remember\n\n"
+        + "Дополнительные команды: /help, /remember, /weather\n\n"
         + "*Внимание: все следующие сообщения будут приняты за название города.*", settings);
       break;
 
@@ -173,7 +173,7 @@ bot.on("message", msg => {
       };
 
       bot.sendMessage(msg.from.id, "Вы можете записать свой город, чтобы не набирать его каждый раз.\n\n"
-        + "Узнать погоду в вашем городе в дальнейшем можно по команде *Погода*.", settings)
+        + "Узнать погоду в вашем городе в дальнейшем можно по команде /weather.", settings)
         .then(send => {
           bot.onReplyToMessage(send.chat.id, send.message_id, message => {
             var settings = {
@@ -185,53 +185,69 @@ bot.on("message", msg => {
 
             MongoClient.connect(urlDb, (err, db) => {
               assert.equal(null, err);
-              console.log("Подключились к таблице из /remember.");
+
+              console.log("Подключились к базе из /remember.");
 
               var users = db.collection("users");
            
-              users.insert(city, (err, docs) => {                
-                users.count((err, count) => {
-                  console.log(`Записей в таблице: ${count}`);
-                });
+              users.find().toArray((err, results) => {
+                users.count((err, count) => {                  
+                  
+                  // Проверям наличие записей в базе
 
-                users.find().toArray((err, results) => {
-                  // console.log(results);
+                  if (count) {
+                    users.find().toArray((err, results) => {
+                      for (userId in results) {
+                        if (results[userId][msg.from.id]) {
+                          console.log(`Город записан. Перезапишем ${message.text}.`);
 
-                  db.close();
+                          users.update({}, { $set: city }, false, true);
+                          return;
+                        }
+                      }
+
+                      db.close();
+                    });
+                  } else {
+                    console.log(`Город не записан. Записываем ${message.text}.`);
+
+                    users.insert(city);
+                    db.close();
+                  }
+
+                  console.log(`Записей в базе: ${count}`);
                 });
               });
             });
 
             bot.sendMessage(msg.from.id, "Бот успешно записал, что вы живете в " + declension(message.text, "prepositional") + ".\n\n"
-              + "Теперь вы можете посмотреть погоду в своем городе с помощью команды *Погода*.\n\n"
-              + "Перезаписать город можно с помощью команды */remember*.", settings);
+              + "Теперь вы можете посмотреть погоду в своем городе с помощью команды /weather.\n\n"
+              + "Перезаписать город можно с помощью команды /remember.", settings);
           });
         });
 
       break;
 
-    case "Погода":
+    case "/weather":
       var getCity = new Promise((resolve, reject) => {
         MongoClient.connect(urlDb, (err, db) => {
           assert.equal(null, err);
-          console.log("Подключились к таблице из команды Погода.");
+
+          console.log("Подключились к базе из команды /weather.");
 
           var users = db.collection("users");
 
           users.find().toArray((err, results) => {
-            var length = results.length - 1;
-
-            var city = (() => {
-              for (var i = 0; i < results.length; i++) {
-                if (results[i][msg.from.id].length) {
-                  resolve(results[length][msg.from.id]);
-
-                  return;
-                }
+            for (userId in results) {
+              if (results[userId][msg.from.id]) {
+                resolve(results[userId][msg.from.id]);
+                return;
               }
-            })();
+            }
 
-            db.close();
+            if (!results.length) {
+              reject("Город не записан. Воспользуйтесь командой /remember, чтобы записать город.");
+            }
           });
         });
       });
@@ -246,6 +262,13 @@ bot.on("message", msg => {
 
           bot.sendMessage(msg.from.id, message, settings);
         })
+        .catch(err => {
+          var settings = {
+            parse_mode: "markdown"
+          };
+
+          bot.sendMessage(msg.from.id, err, settings);
+        });
 
       break;
 
