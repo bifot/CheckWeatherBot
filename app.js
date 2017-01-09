@@ -160,8 +160,8 @@ bot.on("message", msg => {
         parse_mode: "markdown"
       };
 
-      bot.sendMessage(msg.from.id, "Бот предоставляется «так как есть».\n\n"
-        + "Написать разработчику по любым вопросам можно в личные сообщения (*@bifot*).", settings);
+      bot.sendMessage(msg.from.id, "Бот предоставляется *«так как есть»*.\n\n"
+        + "Написать разработчику по любым вопросам можно в личные сообщения (@bifot).", settings);
       break;
 
     case "/remember":
