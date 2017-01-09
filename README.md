@@ -8,6 +8,7 @@
 $ git clone https://github.com/bifot/CheckWeatherBot
 $ cd CheckWeatherBot
 $ npm install
+$ mongod --dbpath PATH_DATABASE
 ```
 
 * OpenWeatherMap API Token — http://openweathermap.org/api
