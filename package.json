@@ -6,7 +6,8 @@
   "dependencies": {
     "node-telegram-bot-api": "^0.25.0",
     "petrovich": "^0.2.1",
-    "sync-request": "^3.0.1"
+    "sync-request": "^3.0.1",
+    "mongodb": "^2.2.19"
   },
   "devDependencies": {},
   "scripts": {
