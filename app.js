@@ -137,7 +137,7 @@ var getWeather = city => {
   return "Город не найден.";
 };
 
-bot.on("message", (msg) => {
+bot.on("message", msg => {
   // Мониторинг сообщений
   console.log(`Пользователь ${msg.from.first_name} ${msg.from.last_name} (@${msg.from.username}) написал «${msg.text}»`);
 
