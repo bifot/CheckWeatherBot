@@ -26,7 +26,7 @@ var toUpperChar = word => {
 
 var translate = (text, lang) => {
   var url = "https://translate.yandex.net/api/v1.5/tr.json/translate?key=" + tokenTranslate
-            + "&text=" + encodeURIComponent(text) + "&lang=" + lang + "&format=plain";
+            + "&text=" + encodeURIComponent(text.replace(" ", "-")) + "&lang=" + lang + "&format=plain";
 
   // Ссылка на запрос
   // console.log(url);
@@ -79,7 +79,7 @@ var getWeather = city => {
     // Склоняем город в предложный падеж, возвращаем с большой буквы
 
     var city = toUpperChar(results.city);
-    var cityHuman = declension(translate(city, "en-ru"), "prepositional");
+    var cityHuman = declension(translate(city, "en-ru").replace("-", " "), "prepositional");
 
     // Добавляем эмодзи в зависимости от описания погоды
 
