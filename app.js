@@ -273,6 +273,8 @@ bot.on("message", msg => {
       break;
 
     default:
+      if (msg.reply_to_message) return; // Фиксим, чтобы бот не отвечал на сообщение к onReply
+      
       var settings = {
         parse_mode: "markdown"
       };
